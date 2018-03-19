@@ -1,0 +1,6 @@
+{
+		"forest-name": "data-hub-MODULES-1",
+		"enabled": true,
+		"database": "%%mlModulesDbName%%",
+		"host":"rh7v-intel64-90-opsdir-3.marklogic.com"
+}

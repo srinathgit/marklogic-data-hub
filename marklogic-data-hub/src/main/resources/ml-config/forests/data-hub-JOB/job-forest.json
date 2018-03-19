@@ -1,0 +1,6 @@
+{
+	"forest-name": "data-hub-JOBS-1",
+	"enabled": true,
+	"database": "%%mlJobDbName%%",
+	"host":"rh7v-intel64-90-opsdir-1.marklogic.com"
+}

@@ -1,0 +1,7 @@
+{
+	"forest-name": "data-hub-STAGING-1",
+	"enabled": true,
+	"database": "%%mlStagingDbName%%",
+	"host":"rh7v-intel64-90-opsdir-1.marklogic.com"
+}
+

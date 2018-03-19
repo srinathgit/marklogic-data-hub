@@ -1,0 +1,7 @@
+{
+		"forest-name": "data-hub-FINAL-1",
+		"enabled": true,
+		"database": "%%mlFinalDbName%%",
+		"host":"rh7v-intel64-90-opsdir-1.marklogic.com"
+}
+	

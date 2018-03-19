@@ -1,0 +1,6 @@
+{
+	"forest-name": "data-hub-SCHEMAS-1",
+	"enabled": true,
+	"database": "%%mlSchemasDbName%%",
+	"host":"rh7v-intel64-90-opsdir-1.marklogic.com"
+}

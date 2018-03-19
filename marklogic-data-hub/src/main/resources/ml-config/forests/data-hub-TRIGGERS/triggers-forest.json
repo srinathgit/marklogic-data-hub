@@ -1,0 +1,6 @@
+{
+	"forest-name": "data-hub-TRIGGERS-1",
+	"enabled": true,
+	"database": "%%mlTriggersDbName%%",
+	"host":"rh7v-intel64-90-opsdir-1.marklogic.com"
+}
