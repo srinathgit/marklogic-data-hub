@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -59,6 +60,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.marklogic.appdeployer.AppConfig;
 import com.marklogic.appdeployer.command.Command;
+import com.marklogic.appdeployer.command.CommandContext;
+import com.marklogic.appdeployer.command.security.GenerateTemporaryCertificateCommand;
 import com.marklogic.appdeployer.impl.SimpleAppDeployer;
 import com.marklogic.client.DatabaseClient;
 import com.marklogic.client.DatabaseClientFactory;
@@ -86,6 +89,7 @@ import com.marklogic.hub.flow.DataFormat;
 import com.marklogic.hub.flow.FlowType;
 import com.marklogic.hub.impl.HubConfigImpl;
 import com.marklogic.hub.util.CertificateTemplateManagerPlus;
+import com.marklogic.hub.util.FileUtil;
 import com.marklogic.hub.util.Versions;
 import com.marklogic.mgmt.ManageClient;
 import com.marklogic.mgmt.ManageConfig;
@@ -398,12 +402,37 @@ public class HubTestBase {
             String fileContents = FileUtils.readFileToString(gradle_properties.toFile());
             fileContents += properties;
             FileUtils.writeStringToFile(gradle_properties.toFile(), fileContents);
+            Paths.get(PROJECT_PATH).resolve("user-config").resolve("forests").toFile().mkdirs();
+            Path forestDir = Paths.get(PROJECT_PATH).resolve("user-config").resolve("forests");
+            forestDir.resolve("data-hub-FINAL").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-FINAL/final-forest-1.json",forestDir.resolve("data-hub-FINAL").resolve("final-forest-1.json"),true);
+            writeResourceFile("ml-config/forests/data-hub-FINAL/final-forest-2.json",forestDir.resolve("data-hub-FINAL").resolve("final-forest-2.json"),true);
+            forestDir.resolve("data-hub-JOB").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-JOB/job-forest.json",forestDir.resolve("data-hub-JOB").resolve("job-forest.json"),true);
+            forestDir.resolve("data-hub-MODULES").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-MODULES/modules-forest.json",forestDir.resolve("data-hub-MODULES").resolve("modules-forest.json"),true);
+            forestDir.resolve("data-hub-SCHEMAS").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-SCHEMAS/schemas-forest.json",forestDir.resolve("data-hub-SCHEMAS").resolve("schemas-forest.json"),true);
+            forestDir.resolve("data-hub-STAGING").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-STAGING/staging-forest-1.json",forestDir.resolve("data-hub-STAGING").resolve("staging-forest-1.json"),true);
+            writeResourceFile("ml-config/forests/data-hub-STAGING/staging-forest-2.json",forestDir.resolve("data-hub-STAGING").resolve("staging-forest-2.json"),true);
+            forestDir.resolve("data-hub-TRACE").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-TRACE/trace-forest.json",forestDir.resolve("data-hub-TRACE").resolve("trace-forest.json"),true);
+            forestDir.resolve("data-hub-TRIGGERS").toFile().mkdirs();
+            writeResourceFile("ml-config/forests/data-hub-TRIGGERS/triggers-forest.json",forestDir.resolve("data-hub-TRIGGERS").resolve("triggers-forest.json"),true);                        
+            
         }
         catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
+    private static void writeResourceFile(String srcFile, Path dstFile, boolean overwrite) {
+        if (overwrite || !dstFile.toFile().exists()) {
+            logger.info("Getting file: " + srcFile);
+            InputStream inputStream = HubProject.class.getClassLoader().getResourceAsStream(srcFile);
+            FileUtil.copy(inputStream, dstFile.toFile());
+        }
+    }
     protected static void installHub() {
         createProjectDir();
         if (!isInstalled) {

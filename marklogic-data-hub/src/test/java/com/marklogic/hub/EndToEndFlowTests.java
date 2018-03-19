@@ -866,6 +866,7 @@ public class EndToEndFlowTests extends HubTestBase {
                 "{" +
                     "\"input_file_path\":\"" + inputPath.replace("\\", "\\\\\\\\") + "\"," +
                     "\"input_file_type\":\"\\\"documents\\\"\"," +
+                    "\"restrict_hosts\":true," +
                     "\"output_collections\":\"\\\"" + ENTITY + "\\\"\"," +
                     "\"output_permissions\":\"\\\"rest-reader,read,rest-writer,update\\\"\"," +
                     "\"output_uri_replace\":\"\\\"" + basePath.replace("\\", "/").replaceAll("^([A-Za-z]):", "/$1:") + ",''\\\"\"," +
