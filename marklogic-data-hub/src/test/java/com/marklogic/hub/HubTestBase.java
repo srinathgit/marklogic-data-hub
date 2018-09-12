@@ -154,6 +154,7 @@ public class HubTestBase {
     private  HashMap<File, String> originalServerFiles= new HashMap<File, String>();
 	private  boolean sslRun = false;
     private  boolean certAuth = false;
+    private  boolean isLBRun = false;
     private  SSLContext datahubadmincertContext = null;
     private  SSLContext flowRunnercertContext = null;
     private  SSLContext certContext = null;
@@ -297,6 +298,12 @@ public class HubTestBase {
         traceDocMgr = getTraceMgr();
         modMgr = getModMgr();
         finalModMgr = getFinalModMgr();
+
+        String lbh = properties.getProperty("mlLoadBalancerHosts");
+        if (lbh != null && lbh.length() > 0) {
+        	isLBRun = true;
+        }
+        
     }
 
     protected DatabaseClient getClient(String host, int port, String dbName, String user,String password, Authentication authMethod) throws Exception {
@@ -335,47 +342,55 @@ public class HubTestBase {
 	}
 
     protected void enableDebugging() {
-        Debugging.create(stagingClient).enable();
+    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+    		Debugging.create(stagingClient).enable();
+    	}
     }
 
     protected void disableDebugging() {
-        Debugging.create(stagingClient).disable();
+    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+    		Debugging.create(stagingClient).disable();
+    	}
     }
 
     protected void enableTracing() {
-        ManageClient manageClient = ((HubConfigImpl)getHubFlowRunnerConfig()).getManageClient();
-        String resp = manageClient.getJson("/manage/v2/hosts?format=json");
-        JsonNode actualObj = null;
-		try {
-			actualObj = new ObjectMapper().readTree(resp);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		JsonNode nameNode = actualObj.path("host-default-list").path("list-items");
-		List<String> hosts = nameNode.findValuesAsText("nameref");
-        hosts.forEach(serverHost ->
-		{
+    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+	        ManageClient manageClient = ((HubConfigImpl)getHubFlowRunnerConfig()).getManageClient();
+	        String resp = manageClient.getJson("/manage/v2/hosts?format=json");
+	        JsonNode actualObj = null;
 			try {
-				DatabaseClient client = getClient(serverHost, stagingPort, HubConfig.DEFAULT_STAGING_NAME, flowRunnerUser, flowRunnerPassword, stagingAuthMethod);
-				Tracing.create(client).enable();
-				clients.add(client);
-			} catch (Exception e) {
+				actualObj = new ObjectMapper().readTree(resp);
+			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e1.printStackTrace();
 			}
-		});
+			JsonNode nameNode = actualObj.path("host-default-list").path("list-items");
+			List<String> hosts = nameNode.findValuesAsText("nameref");
+	        hosts.forEach(serverHost ->
+			{
+				try {
+					DatabaseClient client = getClient(serverHost, stagingPort, HubConfig.DEFAULT_STAGING_NAME, flowRunnerUser, flowRunnerPassword, stagingAuthMethod);
+					Tracing.create(client).enable();
+					clients.add(client);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
+    	}
     }
 
     protected void disableTracing() {
-        clients.forEach(client ->
-		{
-			Tracing.create(client).disable();
-			client.newServerEval().xquery("xquery version \"1.0-ml\";\n" +
-					"import module namespace hul = \"http://marklogic.com/data-hub/hub-utils-lib\" at \"/data-hub/4/impl/hub-utils-lib.xqy\";\n" +
-					"hul:invalidate-field-cache(\"tracing-enabled\")").eval();
-
-		});
+    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+	        clients.forEach(client ->
+			{
+				Tracing.create(client).disable();
+				client.newServerEval().xquery("xquery version \"1.0-ml\";\n" +
+						"import module namespace hul = \"http://marklogic.com/data-hub/hub-utils-lib\" at \"/data-hub/4/impl/hub-utils-lib.xqy\";\n" +
+						"hul:invalidate-field-cache(\"tracing-enabled\")").eval();
+	
+			});
+    	}
     }
 
     //getHubAdminConfig is used for installation, scaffolding
@@ -509,6 +524,10 @@ public class HubTestBase {
     	adminManager = new AdminManager(adminConfig);
     	((HubConfigImpl)hubConfig).setAdminManager(adminManager);
         return hubConfig;
+    }
+    
+    public boolean isLBRun() {
+    	return isLBRun;
     }
 
     public void createProjectDir() {
