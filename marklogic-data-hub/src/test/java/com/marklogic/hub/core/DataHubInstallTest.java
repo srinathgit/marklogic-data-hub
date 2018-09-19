@@ -69,23 +69,29 @@ public class DataHubInstallTest extends HubTestBase {
             	Map preInstall = null;
             	if(!(isSslRun()||isCertAuth())) {
             		preInstall = runPreInstallCheck();
-	            	Assert.assertTrue((boolean) preInstall.get("stagingPortInUse"));
-	            	Assert.assertTrue((boolean) preInstall.get("finalPortInUse"));
+            		if(!isLBRun()) {
+		            	Assert.assertTrue((boolean) preInstall.get("stagingPortInUse"));
+		            	Assert.assertTrue((boolean) preInstall.get("finalPortInUse"));
+            		}
             	}
             	getDataHub().uninstallFinal(null);
             	            	
             	if(!(isSslRun()||isCertAuth())) {
             		preInstall = runPreInstallCheck();
-	            	Assert.assertTrue((boolean) preInstall.get("stagingPortInUse"));
-	            	Assert.assertFalse((boolean) preInstall.get("finalPortInUse"));
+            		if(!isLBRun()) {
+		            	Assert.assertTrue((boolean) preInstall.get("stagingPortInUse"));
+		            	Assert.assertFalse((boolean) preInstall.get("finalPortInUse"));
+            		}
             	}
             	
             	getDataHub().uninstallStaging(null);
 
             	if(!(isSslRun()||isCertAuth())) {
             		preInstall = runPreInstallCheck();
-	            	Assert.assertFalse((boolean) preInstall.get("stagingPortInUse"));
-	            	Assert.assertFalse((boolean) preInstall.get("finalPortInUse"));
+            		if(!isLBRun()) {
+		            	Assert.assertFalse((boolean) preInstall.get("stagingPortInUse"));
+		            	Assert.assertFalse((boolean) preInstall.get("finalPortInUse"));
+            		}
             	}
             }
         } 
@@ -131,15 +137,19 @@ public class DataHubInstallTest extends HubTestBase {
         	Map preInstall = null;
         	if(!(isSslRun()||isCertAuth())) {
         		preInstall = runPreInstallCheck();
-	           	Assert.assertFalse((boolean) preInstall.get("stagingPortInUse"));
-	        	Assert.assertFalse((boolean) preInstall.get("finalPortInUse"));    
+        		if(!isLBRun()) {
+		           	Assert.assertFalse((boolean) preInstall.get("stagingPortInUse"));
+		        	Assert.assertFalse((boolean) preInstall.get("finalPortInUse"));  
+        		}
         	}
         	getDataHub().install(null);      	
         	setupDone=true;
         	if(!(isSslRun()||isCertAuth())) {
 	        	preInstall = runPreInstallCheck();
-	           	Assert.assertTrue((boolean) preInstall.get("stagingPortInUse"));
-	        	Assert.assertTrue((boolean) preInstall.get("finalPortInUse"));
+	        	if(!isLBRun()) {
+		           	Assert.assertTrue((boolean) preInstall.get("stagingPortInUse"));
+		        	Assert.assertTrue((boolean) preInstall.get("finalPortInUse"));
+	        	}
         	}       	
         }
         afterTelemetryInstallCount = getTelemetryInstallCount();

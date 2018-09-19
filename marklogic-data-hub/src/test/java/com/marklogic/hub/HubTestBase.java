@@ -342,19 +342,19 @@ public class HubTestBase {
 	}
 
     protected void enableDebugging() {
-    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+    	if(!isLBRun()) {
     		Debugging.create(stagingClient).enable();
     	}
     }
 
     protected void disableDebugging() {
-    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+    	if(!isLBRun()) {
     		Debugging.create(stagingClient).disable();
     	}
     }
 
     protected void enableTracing() {
-    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+    	if(!isLBRun()) {
 	        ManageClient manageClient = ((HubConfigImpl)getHubFlowRunnerConfig()).getManageClient();
 	        String resp = manageClient.getJson("/manage/v2/hosts?format=json");
 	        JsonNode actualObj = null;
@@ -381,7 +381,7 @@ public class HubTestBase {
     }
 
     protected void disableTracing() {
-    	if(getHubAdminConfig().getLoadBalancerHosts().length==0) {
+    	if(!isLBRun()) {
 	        clients.forEach(client ->
 			{
 				Tracing.create(client).disable();

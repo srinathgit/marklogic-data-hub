@@ -51,6 +51,7 @@ public class TracingTest extends HubTestBase {
 
     @Before
     public void setup() throws IOException, URISyntaxException {
+    	Assume.assumeTrue(!isLBRun());
         enableDebugging();
         clearDatabases(HubConfig.DEFAULT_STAGING_NAME,  HubConfig.DEFAULT_JOB_NAME, HubConfig.DEFAULT_FINAL_NAME);
 
