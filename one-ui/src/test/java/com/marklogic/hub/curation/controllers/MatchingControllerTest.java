@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.marklogic.client.io.DocumentMetadataHandle;
 import com.marklogic.hub.ApplicationConfig;
 import com.marklogic.hub.oneui.Application;
 import com.marklogic.hub.oneui.TestHelper;
@@ -58,6 +59,13 @@ public class MatchingControllerTest {
     void testMatchingConfigs() throws IOException {
         testHelper.authenticateSession();
         ObjectMapper om = new ObjectMapper();
+
+        // Add entities for mappings
+        DocumentMetadataHandle meta = new DocumentMetadataHandle();
+        meta.getCollections().add("http://marklogic.com/entity-services/models");
+        meta.getPermissions().add("data-hub-developer", DocumentMetadataHandle.Capability.READ, DocumentMetadataHandle.Capability.UPDATE);
+        testHelper.addStagingDoc("/entities/Customer.entity.json", meta, "entities/Customer.entity.json");
+        testHelper.addStagingDoc("/entities/Order.entity.json", meta, "entities/Order.entity.json");
 
         controller.updateArtifact("TestCustomerMatching", om.readTree(MATCHING_CONFIG_1));
         controller.updateArtifact("TestOrderMatching1", om.readTree(MATCHING_CONFIG_2));

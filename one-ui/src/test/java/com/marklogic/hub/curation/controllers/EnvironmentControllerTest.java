@@ -25,6 +25,20 @@ import com.marklogic.hub.oneui.services.DataHubProjectUtils;
 import com.marklogic.hub.oneui.services.EnvironmentConfig;
 import com.marklogic.hub.oneui.services.EnvironmentService;
 import com.marklogic.hub.oneui.utils.TestLoggingAppender;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,19 +53,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.multipart.MultipartFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -91,6 +92,7 @@ public class EnvironmentControllerTest {
 
     @AfterEach
     void after() {
+        testHelper.assignRoleToUsers();
         testHelper.setHubProjectDirectory();
     }
 
@@ -165,22 +167,30 @@ public class EnvironmentControllerTest {
 
     @Test
     void installAttemptWithBadDirectory() {
-        final ObjectNode relativePayload = new ObjectMapper().createObjectNode().put("directory", "relative-path");
-        assertThrows(ProjectDirectoryException.class, () -> {
-            environmentController.install(relativePayload);
-            fail("Should have thrown exception for relative path!");
-        });
-        // check that the environment service indicates that the install is in a dirty state
-        assertTrue(environmentService.isInDirtyState(), "Install should be in a dirty state");
-        // check that the AuthenticationFilter shows the Data Hub isn't installed after a failed install attempt
-        TestAuthenticationFilter authenticationFilter = new TestAuthenticationFilter(environmentService, hubConfigSession);
-        assertFalse(authenticationFilter.isDataHubInstalled(), "AuthenticationFilter shouldn't indicate the Data Hub is installed");
-        final ObjectNode nonExistentPayload = new ObjectMapper().createObjectNode().put("directory", "/non-existent");
-        assertThrows(ProjectDirectoryException.class, () -> {
-            environmentController.install(nonExistentPayload);
-        });
+        try {
+            final ObjectNode relativePayload = new ObjectMapper().createObjectNode().put("directory", "relative-path");
+            assertThrows(ProjectDirectoryException.class, () -> {
+                environmentController.install(relativePayload);
+                fail("Should have thrown exception for relative path!");
+            });
+            // check that the environment service indicates that the install is in a dirty state
+            assertTrue(environmentService.isInDirtyState(), "Install should be in a dirty state");
+            // check that the AuthenticationFilter shows the Data Hub isn't installed after a failed install attempt
+            TestAuthenticationFilter authenticationFilter = new TestAuthenticationFilter(environmentService, hubConfigSession);
+            assertFalse(authenticationFilter.isDataHubInstalled(), "AuthenticationFilter shouldn't indicate the Data Hub is installed");
+            final ObjectNode nonExistentPayload = new ObjectMapper().createObjectNode().put("directory", "/non-existent");
+            assertThrows(ProjectDirectoryException.class, () -> {
+                environmentController.install(nonExistentPayload);
+            });
+        }
+        finally{
+            environmentService.setIsInDirtyState(false);
+        }
     }
 
+    /*  The testUpload* tests uninstalls datahub and hence testHelper.assignRoleToUsers() is called to reassign roles to
+        users after installation.
+     */
     @Test
     public void testUploadProjectWithoutArchiveFolder() throws Exception {
         testUploadProject("dhfWithoutArchiveFolder.zip");
@@ -191,8 +201,8 @@ public class EnvironmentControllerTest {
         testUploadProject("dhfWithArchiveFolder.zip");
     }
 
-    public void testUploadProject(String zipFileName) throws Exception {
-        testHelper.authenticateSessionAsEnvironmentManager();
+    private void testUploadProject(String zipFileName) throws Exception {
+        testHelper.authenticateSessionAsAdmin();
         TestAuthenticationFilter authenticationFilter = new TestAuthenticationFilter(environmentService, hubConfigSession);
         boolean installed = authenticationFilter.isDataHubInstalled();
         if (!installed) {

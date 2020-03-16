@@ -10,6 +10,7 @@ import com.marklogic.mgmt.api.security.User;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
@@ -63,6 +64,11 @@ public class Installer extends HubTestBase implements InitializingBean {
             testAdmin.setPassword("password");
             testAdmin.addRole("admin");
             testAdmin.save();
+
+            User dataHubEnvManager = new User(new API(adminHubConfig.getManageClient()), "test-data-hub-environment-manager");
+            dataHubEnvManager.setPassword("password");
+            dataHubEnvManager.addRole("data-hub-environment-manager");
+            dataHubEnvManager.save();
 
             applyDatabasePropertiesForTests(dataHub, adminHubConfig);
         }
