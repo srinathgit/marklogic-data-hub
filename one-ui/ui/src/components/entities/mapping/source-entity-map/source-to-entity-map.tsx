@@ -33,6 +33,15 @@ const SourceToEntityMap = (props) => {
 
     const [srcData, setSrcData] = useState<any[]>([]);
 
+    //For source dropdown search menu
+    const [flatArray, setFlatArray]   = useState<any[]>([]);
+    const [sourcePropName, setSourcePropName] = useState('');
+    const [sourcePropListForDropDown,setSourcePropListForDropDown] = useState<any>([]);
+    const [sourceIndentForDropDown,setSourceIndentForDropDown] = useState<any>([]);
+    const [sourceValue, setSourceValue] = useState('');
+    const [displaySourceMenu, setDisplaySourceMenu] = useState(false);
+    const [displaySourceList, setDisplaySourceList] = useState(false);
+
     //For TEST and Clear buttons
     const [mapResp, setMapResp] = useState({});
     const [isTestClicked, setIsTestClicked] = useState(false);
@@ -108,7 +117,7 @@ const SourceToEntityMap = (props) => {
 
     useEffect(() => {
         setSrcData([...props.sourceData])
-
+        setFlatArray(flattenSourceDoc([...props.sourceData], [], ''))
     }, [props.sourceData]);
 
     //To handle navigation buttons
@@ -307,8 +316,12 @@ const SourceToEntityMap = (props) => {
                     onBlur={handleExpSubmit}
                     autoSize={{ minRows: 1 }}
                     disabled={!props.canReadWrite}></TextArea>&nbsp;&nbsp;
-                <i id="listIcon"><FontAwesomeIcon icon={faList} size="lg" className={styles.listIcon}
-                /></i>&nbsp;&nbsp;
+                <span>
+                    <Dropdown overlay={sourceSearchMenu} trigger={['click']} >
+                        <i  id="listIcon"><FontAwesomeIcon icon={faList} size="lg" data-testid= "listSources"  className={styles.listIcon} onClick={(e) => handleSourceList(row.name)}/></i>
+                    </Dropdown>
+                </span>
+                &nbsp;&nbsp;
                 <span ><Dropdown overlay={menu} trigger={['click']}><Button id="functionIcon" className={styles.functionIcon} size="small" onClick={(e) => handleFunctionsList(row.name)}>fx</Button></Dropdown></span></div>
                 {checkFieldInErrors(row.name) ? <div id="errorInExp" className={styles.validationErrors}>{displayResp(row.name)}</div> : ''}</div>)
         },
@@ -454,7 +467,96 @@ const SourceToEntityMap = (props) => {
             onItemSelect={onFunctionSelect}
             srcData={propListForDropDown}
             propName={propName}
-            handleDropdownMenu={handleFunctionsList} />
+            handleDropdownMenu={handleFunctionsList}/>
+    );
+    /* Insert source field in map expressions */
+
+    const flattenSourceDoc = (sourceData, flatArray, val) => {
+        sourceData.forEach(element =>{
+            let key = element.key;
+            if( element.val) {
+                if(!val&& val.indexOf('/') == -1){
+                    flatArray.push({'key':key, 'val':element.key});
+                }
+                else {
+                    flatArray.push({'key':key, 'val':val+ '/'+element.key});
+                }
+            }
+            else{
+                if(!val){
+                    val =element.key
+                }
+                else {
+                    val = val +'/'+ element.key
+                }
+                flatArray.push({'key':key, 'val':val});
+            }
+            if(element.children) {
+                flattenSourceDoc(element.children, flatArray, val);
+                val = (val.indexOf("/")==-1)?'':val.substring(0,val.indexOf("/"))
+            }
+        })
+        return flatArray;
+    }
+
+    const handleSourceList = async (name) => {
+        console.log(JSON.stringify(flatArray));
+        let propList: any = []
+        let indentList:any = []
+        setPropName(name);
+        flatArray.forEach(element => propList.push(element.key));
+        flatArray.forEach(element => indentList.push(20*(element.val.split('/').length - 1)));
+        setSourcePropListForDropDown(propList);
+        setSourceIndentForDropDown(indentList);
+        setSourcePropName(name);
+        if (!displaySourceList && !displaySourceMenu) {
+            setSourceValue('');
+            await setDisplaySourceList(true);
+            await setDisplaySourceMenu(true);
+            console.log("SO SO SO")
+        }
+        else {
+            await setDisplaySourceList(false);
+            await setDisplaySourceMenu(false);
+        }
+    }
+
+    const getSourceValue = (sourceKey) => {
+        return flatArray.find(element => element.key == sourceKey).val;
+    }
+
+    const insertSource = (content, propName) => {
+        if(!mapExp[propName]){
+            mapExp[propName] = '';
+        }
+        if(String(content).includes(" ")){
+            content = "*[local-name(.)='" + content + "']";
+        }
+        let newExp = mapExp[propName].substr(0, caretPosition) + content +
+            mapExp[propName].substr(caretPosition, mapExp[propName].length);
+        setMapExpTouched(true);
+        setMapExp({ ...mapExp, [propName]: newExp });
+        setDisplaySourceList(false);
+        setDisplaySourceMenu(false);
+    }
+
+    const onSourceSelect = (e, name) => {
+        setSourceValue(e);
+        insertSource(getSourceValue(e), propName);
+    }
+
+    const sourceSearchMenu = (
+        <DropDownWithSearch
+            displayMenu={displaySourceMenu}
+            setDisplayMenu={setDisplaySourceMenu}
+            setDisplaySelectList={setDisplaySourceList}
+            displaySelectList={displaySourceList}
+            itemValue={sourceValue}
+            onItemSelect={onSourceSelect}
+            srcData={sourcePropListForDropDown}
+            propName={sourcePropName}
+            handleDropdownMenu={handleSourceList}
+            indentList = {sourceIndentForDropDown}/>
     );
 
     const splitPaneStyles= {
@@ -539,20 +641,20 @@ const SourceToEntityMap = (props) => {
                             :
                             <div id="dataPresent">
                                 <div className={styles.navigationCollapseButtons}>{navigationButtons}</div>
-                                    <Table
-                                        pagination={false}
-                                        defaultExpandAllRows={true}
-                                        expandIcon={(props) => customExpandIcon(props)}
-                                        className={styles.sourceTable}
-                                        rowClassName={() => styles.sourceTableRows}
-                                        scroll={{y: '70vh', x: 'max-content' }}
-                                        indentSize={14}
-                                        //size="small"
-                                        columns={columns}
-                                        dataSource={srcData}
-                                        tableLayout="unset"
-                                        rowKey="name"
-                                    />
+                                <Table
+                                    pagination={false}
+                                    defaultExpandAllRows={true}
+                                    expandIcon={(props) => customExpandIcon(props)}
+                                    className={styles.sourceTable}
+                                    rowClassName={() => styles.sourceTableRows}
+                                    scroll={{y: '70vh', x: 'max-content' }}
+                                    indentSize={14}
+                                    //size="small"
+                                    columns={columns}
+                                    dataSource={srcData}
+                                    tableLayout="unset"
+                                    rowKey="name"
+                                />
                             </div> }
                     </div>
                     <div

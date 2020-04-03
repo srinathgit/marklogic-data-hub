@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { waitForElement, render, cleanup, fireEvent } from '@testing-library/react';
 import SourceToEntityMap from './source-to-entity-map';
 import data from '../../../../config/data.config';
 import { shallow } from 'enzyme';
@@ -21,7 +21,7 @@ describe('RTL Source-to-entity map tests', () => {
     });
 
     test('RTL tests with source data',  () => {
-        const { getByTestId,  getByText,container, queryByText } = render(<SourceToEntityMap {...data.mapProps}  mappingVisible={true}/>);
+        const { getByTestId,  getByText, queryByText} = render(<SourceToEntityMap {...data.mapProps}  mappingVisible={true}/>);
         expect(getByText('Source Data')).toBeInTheDocument();
         expect(getByText('proteinId')).toBeInTheDocument();
         expect(getByTestId("entityContainer")).toBeInTheDocument();
@@ -37,8 +37,38 @@ describe('RTL Source-to-entity map tests', () => {
         fireEvent.click(getByText('Clear'));
         expect(getByText('Clear')).toBeEnabled();
         expect(getByText("concat(name,'-NEW')")).toBeInTheDocument();
-        console.log(container);
     });
+});
+
+test('RTL tests with nested source data',  async() => {
+    const { findByText, getByTestId,  getByText,getAllByText, queryByText, getAllByTestId, container, debug } = render(<SourceToEntityMap {...data.nestedProps}  mappingVisible={true}/>);
+    expect(getByText('Source Data')).toBeInTheDocument();
+    expect(getByText('biographicData')).toBeInTheDocument();
+    expect(getByText('Entity: Person')).toBeInTheDocument();
+    expect(getByText('Test')).toBeEnabled();
+    expect(queryByText("Unable to find source documents using the specified collection or query.")).not.toBeInTheDocument();
+
+    let icon = getAllByTestId("listSources");
+    expect(icon[0]).toBeInTheDocument();
+    let selection = getAllByText("firstName");
+    expect(selection.length).toEqual(1);
+    //debug(getAllByTestId("listSources"))
+    fireEvent.click(icon[0]);
+     debug(await waitForElement(() => getAllByText("firstName"), {timeout:3000}))
+    await waitForElement(() => getByTestId('entityContainer'))
+    //await fireEvent.click(getAllByRole("option")[0]);
+/*    fireEvent.click(selection[0]);
+
+    selection = getAllByText("home");
+    expect(selection.length).toEqual(1);
+    expect(getByText("home")).toBeInTheDocument();
+    debug(getByText("testName1"));
+    //expect(queryByText("testName1")).not.toBeInTheDocument();
+    console.log(container.querySelectorAll('#mapexpression'));*/
+
+
+    //fireEvent.change(searchBar, { target: {value: "concat(name,'-NEW')" }});
+
 });
 
 describe('Enzyme Source-to-entity map tests', () => {

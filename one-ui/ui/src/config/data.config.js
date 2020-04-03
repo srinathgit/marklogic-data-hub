@@ -77,6 +77,61 @@ const mapProps = {
   ]
 };
 
+const nestedProps = {
+  sourceData: [{
+    key: "biographicData",
+    children: [{
+      key: "name",
+      children: [{
+        key: "firstName",
+        val: "VALUE:John"
+      }, {
+        key: "lastName",
+        val: "Smith"
+      }]
+    }, {
+      key: "dob",
+      val: "02/01/1980"
+    }]
+  }, {
+    key: "lastUpdated",
+    val: "11/01/2019 12:34:56"
+  }],
+  sourceURI: '/dummy/mapping/source/uri1.json',
+  mapData: {
+    name: 'testMap',
+    description: 'Description of testMap',
+    targetEntityType: 'Person',
+    selectedSource: 'collection',
+    sourceQuery: "cts.collectionQuery([''])",
+    properties: {
+      id: {  sourcedFrom: 'id' },
+      name: { sourcedFrom: 'mappedName' }
+    }
+  },
+  mapName: 'testMap',
+  getMappingArtifactByMapName: jest.fn(),
+  updateMappingArtifact: jest.fn(),
+  mappingVisible:  false,
+  setMappingVisible: true,
+  fetchSrcDocFromUri: jest.fn(),
+  docUris: [ '/dummy/mapping/source/uri1.json', '/dummy/mapping/source/uri2.json', '/dummy/mapping/source/uri3.json'],
+  disableURINavLeft: true,
+  disableURINavRight: false,
+  setDisableURINavLeft: true,
+  setDisableURINavRight: false,
+  sourceDatabaseName:'data-hub-STAGING',
+  canReadWrite: true,
+  canReadOnly: false,
+  docNotFound: false,
+  entityTypeTitle: 'Person',
+  extractCollectionFromSrcQuery: jest.fn(),
+  entityTypeProperties: [
+    { name: 'id', type: 'int' },
+    { name: 'name', type: 'string' }
+  ]
+};
+
 const newMap = {
   title: 'New Mapping',
   newMap: true,
@@ -132,6 +187,7 @@ const data = {
   },
   flows: flows,
   mapProps: mapProps,
+  nestedProps: nestedProps,
   newMap: newMap,
   editMap: editMap,
   activitySettings: activitySettings,
