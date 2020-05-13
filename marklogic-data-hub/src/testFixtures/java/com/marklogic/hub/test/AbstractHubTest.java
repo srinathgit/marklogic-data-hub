@@ -211,6 +211,11 @@ public abstract class AbstractHubTest extends TestObject {
                 FileUtils.copyDirectory(stepDefinitionsDir, hubProject.getStepDefinitionsDir().toFile());
             }
 
+            File stepsDir = new File(testProjectDir, "steps");
+            if (stepsDir.exists()) {
+                FileUtils.copyDirectory(stepsDir, hubProject.getStepsPath().toFile());
+            }
+
             File modulesDir = new File(testProjectDir, "modules");
             if (modulesDir.exists()) {
                 FileUtils.copyDirectory(modulesDir, hubProject.getModulesDir().toFile());
