@@ -48,7 +48,7 @@ describe('Verify errors associated with running a step', () => {
         expect(await(waitForElement(() => getAllByText("Details:").length,{"timeout":2500}))).toEqual(1)
         expect(await(waitForElement(() => getAllByText("URI:").length,{"timeout":2500}))).toEqual(1)
         expect(await(waitForElement(() => getAllByText("/test/data/nestedPerson1.json").length,{"timeout":2500}))).toEqual(1)
-        expect(await(waitForElement(() => getAllByText("Load \"failedIngest\" completed with errors").length,{"timeout":2500}))).toEqual(1)
+        expect(await(waitForElement(() => getAllByText("Ingestion \"failedIngest\" completed with errors").length,{"timeout":2500}))).toEqual(1)
         expect(document.querySelector('#error-list')).toHaveTextContent('Out of 3 batches, 1 succeeded and 2 failed. Error messages are displayed below')
 
         // Error 2 is present
@@ -82,7 +82,7 @@ describe('Verify errors associated with running a step', () => {
         fireEvent.click(runButton);
 
         expect(await(waitForElement(() => getByText("Running...")))).toBeInTheDocument();
-        expect(await(waitForElement(() => getByText('Load "failedIngest" failed')))).toBeInTheDocument()
+        expect(await(waitForElement(() => getByText('Ingestion "failedIngest" failed')))).toBeInTheDocument()
         expect(getByText("Message:")).toBeInTheDocument()
         expect(document.querySelector('#error-list')).toHaveTextContent('Local message: failed to apply resource at documents')
 
@@ -123,7 +123,7 @@ describe('Verify step running', () => {
         fireEvent.click(runButton);
 
         expect(await(waitForElement(() => getByText("Running...")))).toBeInTheDocument();
-        expect(await(waitForElement(() => getByText('Map "Mapping1" ran successfully')))).toBeInTheDocument();
+        expect(await(waitForElement(() => getByText('Mapping "Mapping1" ran successfully')))).toBeInTheDocument();
 
         fireEvent.click(getByText('Close'));
 
@@ -154,7 +154,7 @@ describe('Verify step running', () => {
         fireEvent.click(runButton);
 
         expect(await(waitForElement(() => getByText("Running...")))).toBeInTheDocument();
-        expect(await(waitForElement(() => getByText('Map "Mapping1" ran successfully')))).toBeInTheDocument();
+        expect(await(waitForElement(() => getByText('Mapping "Mapping1" ran successfully')))).toBeInTheDocument();
 
         fireEvent.click(getByText('Close'));
 

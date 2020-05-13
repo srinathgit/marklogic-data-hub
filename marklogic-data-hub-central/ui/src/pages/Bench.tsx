@@ -129,9 +129,14 @@ const Bench: React.FC = () => {
         }
     }
 
+    function formatStepType(stepType){
+        stepType = stepType.toLowerCase();
+        return stepType[0].toUpperCase() + stepType.substr(1);
+    }
+
     function showSuccess(stepName, stepType) {
         Modal.success({
-        title: <p>{stepType} "{stepName}" ran successfully</p>,
+        title: <p>{formatStepType(stepType)} "{stepName}" ran successfully</p>,
             okText: 'Close',
             mask: false
         });
@@ -167,7 +172,7 @@ const Bench: React.FC = () => {
 
     function showErrors(stepName, stepType, errors, response) {
         Modal.error({
-            title: <p>{stepType} "{stepName}" completed with errors</p>,
+            title: <p>{formatStepType(stepType)} "{stepName}" completed with errors</p>,
             content: (
                 <div id="error-list">
                     <p className={styles.errorSummary}>{getErrorsSummary(response)}</p>
@@ -188,7 +193,7 @@ const Bench: React.FC = () => {
 
     function showFailed(stepName, stepType, errors) {
         Modal.error({
-            title: <p>{stepType} "{stepName}" failed</p>,
+            title: <p>{formatStepType(stepType)} "{stepName}" failed</p>,
             content: (
                 <div id="error-list">
                     {errors.map((e, i) => {
