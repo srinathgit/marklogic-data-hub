@@ -69,10 +69,12 @@ const AdvancedSettingsDialog = (props) => {
   const [processorsValid, setProcessorsValid] = useState(true);
 
   const [customHook, setCustomHook] = useState('');
-  const [customHookTouched, setCustomHookTouched] = useState(false);  
+  const [customHookTouched, setCustomHookTouched] = useState(false);
   const [customHookExpanded, setCustomHookExpanded] = useState(false);
   const [customHookValid, setCustomHookValid] = useState(true);
-  
+
+  const [options, setOptions] = useState('');
+
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [loading,setLoading] = useState(false);
 
@@ -161,9 +163,16 @@ const AdvancedSettingsDialog = (props) => {
 
   // GET the settings artifact
   const getSettingsArtifact = async () => {
+    let response;
+    console.log(JSON.stringify(props.stepData))
     if (props.stepData.name) {
       try {
-        let response = await Axios.get(`/api/steps/${stepType}/${props.stepData.name}`);
+        if(props.stepData.flow){
+            response = await Axios.get(`/api/steps/${stepType}/${props.stepData.flow}/${props.stepData.name}`);
+        }
+        else{
+            response = await Axios.get(`/api/steps/${stepType}/${props.stepData.name}`);
+        }
 
         if (response.status === 200) {
           if (response.data.sourceDatabase) {
@@ -175,6 +184,9 @@ const AdvancedSettingsDialog = (props) => {
           setTargetDatabase(response.data.targetDatabase);
           if (response.data.additionalCollections) {
             setAdditionalCollections([...response.data.additionalCollections]);
+          }
+          if(response.data.options){
+              setOptions(formatJSON(response.data.options));
           }
           setTargetPermissions(response.data.permissions);
           setTargetFormat(response.data.targetFormat);
@@ -450,8 +462,8 @@ const AdvancedSettingsDialog = (props) => {
     <p className={styles.stepName}>{props.stepData.name}</p><br/>
     <div className={styles.newDataForm}>
       <Form {...formItemLayout} onSubmit={handleSubmit} colon={true}>
-        { usesSourceDatabase ? <Form.Item 
-          label={<span>Source Database</span>} 
+        { usesSourceDatabase ? <Form.Item
+          label={<span>Source Database</span>}
           labelAlign="left"
           className={styles.formItem}
         >
@@ -472,8 +484,8 @@ const AdvancedSettingsDialog = (props) => {
             </Tooltip>
           </div>
         </Form.Item> : null
-        }<Form.Item 
-          label={<span>Target Database</span>} 
+        }<Form.Item
+          label={<span>Target Database</span>}
           labelAlign="left"
           className={styles.formItem}
         >
@@ -494,9 +506,9 @@ const AdvancedSettingsDialog = (props) => {
             </Tooltip>
           </div>
         </Form.Item>
-        <Form.Item 
-          label={<span>Target Collections</span>} 
-          labelAlign="left" 
+        <Form.Item
+          label={<span>Target Collections</span>}
+          labelAlign="left"
           className={styles.formItemTargetCollections}
         >
           <Select
@@ -520,15 +532,15 @@ const AdvancedSettingsDialog = (props) => {
             </Tooltip>
           </div>
         </Form.Item>
-        <Form.Item 
-          label={<span className={styles.defaultCollectionsLabel}>Default Collections</span>} 
-          labelAlign="left" 
+        <Form.Item
+          label={<span className={styles.defaultCollectionsLabel}>Default Collections</span>}
+          labelAlign="left"
           className={styles.formItem}
         >
         <div className={styles.defaultCollections}>{defaultCollections.map((collection, i) => {return <div data-testid={`defaultCollections-${collection}`} key={i}>{collection}</div>})}</div>
         </Form.Item>
-        <Form.Item 
-          label={<span>Target Permissions</span>} 
+        <Form.Item
+          label={<span>Target Permissions</span>}
           labelAlign="left"
           className={styles.formItem}
         >
@@ -549,8 +561,8 @@ const AdvancedSettingsDialog = (props) => {
               {permissionValidationError}
           </div>
         </Form.Item>
-        { usesTargetFormat ? <Form.Item 
-          label={<span>Target Format</span>} 
+        { usesTargetFormat ? <Form.Item
+          label={<span>Target Format</span>}
           labelAlign="left"
           className={styles.formItem}
         >
@@ -571,8 +583,8 @@ const AdvancedSettingsDialog = (props) => {
             </Tooltip>
           </div>
         </Form.Item> : null }
-        <Form.Item 
-          label={<span>Provenance Granularity</span>} 
+        <Form.Item
+          label={<span>Provenance Granularity</span>}
           labelAlign="left"
           className={styles.formItem}
         >
@@ -593,8 +605,8 @@ const AdvancedSettingsDialog = (props) => {
             </Tooltip>
           </div>
         </Form.Item>
-        <Form.Item 
-          label={<span>Batch Size</span>} 
+        <Form.Item
+          label={<span>Batch Size</span>}
           labelAlign="left"
           className={styles.formItem}
         >
@@ -612,18 +624,35 @@ const AdvancedSettingsDialog = (props) => {
             </Tooltip>
           </div>
         </Form.Item>
+          { stepType ==='custom' ? <Form.Item
+              label={<span>Options</span>}
+              labelAlign="left"
+              className={styles.formItem}
+          >
+              <TextArea
+                  id="options"
+                  placeholder="Please enter options"
+                  value={options}
+                  disabled={!canReadWrite}
+                  className={styles.textarea}
+                  rows={6}
+                  aria-label="options-textarea"
+                  style={!headersValid ? {border: 'solid 1px #C00'} : {}}
+              />
+          </Form.Item> : null
+        }
         { usesHeaders ? <>
         <div className={styles.textareaTooltip}>
           <Tooltip title={tooltips.headers}>
             <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
           </Tooltip>
         </div>
-        <Form.Item 
-          label={<span>Header Content</span>} 
+        <Form.Item
+          label={<span>Header Content</span>}
           labelAlign="left"
           className={styles.formItem}
         >
-          <TextArea 
+          <TextArea
             id="headers"
             placeholder="Please enter header content"
             value={headers}
@@ -637,16 +666,16 @@ const AdvancedSettingsDialog = (props) => {
           />
           { !headersValid ? <div className={styles.invalid}>{invalidJSONMessage}</div> : null }
         </Form.Item></> : null }
-        <Form.Item 
+        <Form.Item
           label={<span>
-            <Icon 
-              type="right" 
-              className={styles.rightArrow} 
-              onClick={() => setProcessorsExpanded(!processorsExpanded)} 
+            <Icon
+              type="right"
+              className={styles.rightArrow}
+              onClick={() => setProcessorsExpanded(!processorsExpanded)}
               rotate={processorsExpanded ? 90 : 0}
             />
             <span className={styles.expandLabel} onClick={() => setProcessorsExpanded(!processorsExpanded)}>Processors</span>
-          </span>} 
+          </span>}
           labelAlign="left"
           className={styles.formItem}
           colon={false}
@@ -657,7 +686,7 @@ const AdvancedSettingsDialog = (props) => {
               <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
             </Tooltip>
           </div>
-          <TextArea 
+          <TextArea
             id="processors"
             placeholder="Please enter processor content"
             value={processors}
@@ -671,16 +700,16 @@ const AdvancedSettingsDialog = (props) => {
           />
           { !processorsValid ? <div className={styles.invalidExpand}>{invalidJSONMessage}</div> : null }
         </div> : ''}
-        <Form.Item 
+        <Form.Item
           label={<span>
-            <Icon 
-              type="right" 
-              className={styles.rightArrow} 
-              onClick={() => setCustomHookExpanded(!customHookExpanded)} 
+            <Icon
+              type="right"
+              className={styles.rightArrow}
+              onClick={() => setCustomHookExpanded(!customHookExpanded)}
               rotate={customHookExpanded ? 90 : 0}
             />
             <span className={styles.expandLabel} onClick={() => setCustomHookExpanded(!customHookExpanded)}>Custom Hook</span>
-          </span>} 
+          </span>}
           labelAlign="left"
           className={styles.formItem}
           colon={false}
@@ -691,7 +720,7 @@ const AdvancedSettingsDialog = (props) => {
               <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
             </Tooltip>
           </div>
-          <TextArea 
+          <TextArea
             id="customHook"
             placeholder="Please enter custom hook content"
             value={customHook}

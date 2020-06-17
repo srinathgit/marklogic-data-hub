@@ -1,0 +1,8 @@
+{
+    "functionName": "getCustomStepsGroupedByEntity",
+    "return": {
+        "desc": "Return an array of custom steps grouped by entity. The steps that don't have an associated entity are part of 'No Entity Type' group",
+        "datatype": "jsonDocument",
+        "$javaClass": "com.fasterxml.jackson.databind.JsonNode"
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "functionName": "getCustomStep",
+    "params": [
+            {
+                "name": "stepName",
+                "datatype": "string"
+            },
+            {
+                "name": "flowName",
+                "datatype": "string"
+            }
+        ],
+    "return": {
+        "desc": "Returns an inline custom step",
+        "datatype": "jsonDocument",
+        "$javaClass": "com.fasterxml.jackson.databind.JsonNode"
+    }
+}

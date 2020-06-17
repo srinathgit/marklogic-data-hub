@@ -5,6 +5,7 @@ import { UserContext } from '../../util/user-context';
 import styles from './entity-tiles.module.scss';
 import MappingCard from './mapping/mapping-card';
 import MatchingCard from './matching/matching-card';
+import CustomCard from "./custom/custom-card";
 
 const EntityTiles = (props) => {
     const { resetSessionTime } = useContext(UserContext);
@@ -12,10 +13,11 @@ const EntityTiles = (props) => {
     const entityModels = props.entityModels || {};
     const [mappingArtifacts, setMappingArtifacts] = useState<any[]>([]);
     const [matchingArtifacts, setMatchingArtifacts] = useState<any[]>([]);
+    const [customArtifacts, setCustomArtifacts] = useState<any[]>([]);
     const { canReadMapping, canWriteMapping } = props;
     //For accordian within entity tiles
     const { Panel } = Collapse;
-
+    const [requiresNoEntityTypeTile, setRequiresNoEntityTypeTile]  = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const mappingCardsView = () => {
@@ -26,7 +28,12 @@ const EntityTiles = (props) => {
         setViewType('matching');
     }
 
+    const customCardsView = () => {
+        setViewType('custom');
+    }
+
     useEffect(() => {
+        getCustomArtifactsGroupedByEntity();
         getMappingArtifacts();
         getMatchingArtifacts();
     },[isLoading]);
@@ -178,9 +185,30 @@ const EntityTiles = (props) => {
           }
     }
 
-    const outputCards = (entityType, mappingCardData, matchingCardData) => {
-        let output;
+    const getCustomArtifactsGroupedByEntity = async () => {
+        try {
+            let response = await axios.get('/api/steps/custom');
+            if (response.status === 200) {
+                let entArt = response.data;
+                if(props.canReadCustom && entArt[entArt.length -1].artifacts.length > 0){
+                    setRequiresNoEntityTypeTile(true);
+                }
+                entArt.sort((a, b) => (a.entityType > b.entityType) ? 1 : -1)
+                setCustomArtifacts([...entArt]);
 
+            }
+
+        } catch (error) {
+            let message = error;
+            console.error('Error while fetching custom artifacts', message);
+        } finally {
+            resetSessionTime();
+        }
+    }
+
+    const outputCards = (entityType, mappingCardData, matchingCardData, customCardData) => {
+        let output;
+        console.log(JSON.stringify(customArtifacts.find((artifact) => artifact.entityType === "No Entity Type")));
         if (viewType === 'map') {
             output = <div className={styles.cardView}>
                 <MappingCard data={mappingCardData ? mappingCardData.artifacts : []}
@@ -208,6 +236,12 @@ const EntityTiles = (props) => {
                 canWriteMatchMerge={props.canWriteMatchMerge} />
         </div>
         }
+        else if (viewType === 'custom' ){
+            output = <div className={styles.cardView}>
+                <CustomCard data={ customCardData ? customCardData.artifacts : []}
+                            entityTypeTitle={entityType}/>
+            </div>
+        }
         else {
             output = <div><br/>This functionality implemented yet.</div>
         }
@@ -227,14 +261,24 @@ const EntityTiles = (props) => {
                 {canReadMapping ? <Menu.Item key='map' onClick={mappingCardsView}>
                     Map
                 </Menu.Item>: null}
-               {props.canReadMatchMerge ? <Menu.Item key='matching' onClick={matchingCardsView}>
+                {props.canReadCustom ? <Menu.Item key='custom' onClick={customCardsView}>
+                    Custom
+                </Menu.Item>: null}
+               {props.canReadMatchMerge  && entityType !== 'No Entity Type' ? <Menu.Item key='matching' onClick={matchingCardsView}>
                     Match
                 </Menu.Item>: null}
             </Menu>
             </div>
-            {outputCards(entityType, mappingArtifacts.find((artifact) => artifact.entityTypeId === entityModels[entityType].entityTypeId),matchingArtifacts.find((artifact) => artifact.entityTypeId === entityModels[entityType].entityTypeId))}
+            {outputCards(entityType, mappingArtifacts.find((artifact) => artifact.entityTypeId ===  entityModels[entityType].entityTypeId),matchingArtifacts.find((artifact) => artifact.entityTypeId === entityModels[entityType].entityTypeId), customArtifacts.find((artifact) => artifact.entityTypeId === entityModels[entityType].entityTypeId))}
             </Panel>
             ))}
+            {requiresNoEntityTypeTile  ?
+            <Panel header="No Entity Type" key="No Entity Type">
+                <div className={styles.cardView}>
+                    <CustomCard data={ customArtifacts.find((artifact) => artifact.entityType === "No Entity Type")}
+                                entityTypeTitle="No Entity Type"/>
+                </div>
+            </Panel>: null}
         </Collapse>
         </div>
     );

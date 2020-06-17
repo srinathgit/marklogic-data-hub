@@ -61,6 +61,12 @@ const AdvMatchTooltips = {
     'provGranularity': 'The level of detail logged for provenance. Choose *fine* for more detailed logging, *coarse* for the default level, or *off* for no provenance logging.',
 }
 
+const NewCustomTooltips = {
+  'name':'The name of this custom configuration.',
+  'description':'The description of this custom configuration.',
+  'sourceQuery':'The collection or CTS query that selects the source data to process in this configuration.',
+}
+
 const NewMergeTooltips = {
     'timestampPath': 'The field to use to determine which values to include in the merged property, based on their recency.'
 }
@@ -132,5 +138,6 @@ export {
     NewMergeTooltips,
     AdvMergeTooltips,
     ModelingTooltips,
-    RunToolTips
+    RunToolTips,
+    NewCustomTooltips
 }
