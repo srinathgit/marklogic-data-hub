@@ -39,6 +39,7 @@ const jobRespFailedWithError = {
               "stepDefinitionName": "entity-services-mapping",
               "stepDefinitionType": "mapping",
               "stepOutput": stepFailedWithError,
+              "targetEntityType": "http://example.org/Customer-0.0.1/Customer",
               "fullOutput": null,
               "status": "completed step 2",
               "totalEvents": 3,
@@ -135,6 +136,7 @@ const jobRespFailed = {
             "stepName": "Mapping1",
             "stepDefinitionName": "entity-services-mapping",
             "stepDefinitionType": "mapping",
+            "targetEntityType": "http://example.org/Customer-0.0.1/Customer",
             "stepOutput": stepFailed
         },
         "4": {
@@ -404,6 +406,7 @@ const jobRespSuccess = {
         "stepName": "Mapping1",
         "stepDefinitionName": "entity-services-mapping",
         "stepDefinitionType": "mapping",
+        "targetEntityType": "http://example.org/Customer-0.0.1/Customer"
       },
       "4": {
           "flowName": "testFlow",
@@ -438,7 +441,18 @@ const flowsXML = {
               "stepName": "loadXML",
               "stepDefinitionType": "INGESTION",
               "stepNumber": "1",
-              "sourceFormat": "xml"
+              "sourceFormat": "xml",
+              "jobId": "350da405-c1e9-4fa7-8269-d9aefe3b4b9a",
+              "lastRunStatus": "completed step 1",
+              "stepEndTime": "2020-07-13T23:54:06.30257-07:00"
+          },
+          {
+              "stepName": "Mapping1",
+              "stepDefinitionType": "MAPPING",
+              "stepNumber": "2",
+              "jobId": "350da405-c1e9-4fa7-8269-d9aefe3b4b9a",
+              "lastRunStatus": "completed with errors step 2",
+              "stepEndTime": "2020-04-04T01:17:45.012137-07:00"
           }
       ]
   }]

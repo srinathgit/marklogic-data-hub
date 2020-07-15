@@ -13,7 +13,7 @@ import  Run from '../pages/Run';
 import {AuthoritiesContext, AuthoritiesService} from '../util/authorities';
 import data from '../assets/mock-data/flows.data';
 import authorities from '../assets/authorities.testutils';
-import {RunToolTips} from "../config/tooltips.config";
+import {AdvancedSettings, RunToolTips} from "../config/tooltips.config";
 import {act} from "react-dom/test-utils";
 import {MemoryRouter} from "react-router-dom";
 
@@ -262,13 +262,45 @@ describe('Verify step display', () => {
 
     test('Verify a load step with XML source is displayed correctly', async () => {
         mocks.runXMLAPI(axiosMock);
-        const { getByText, getByLabelText } = await render(<AuthoritiesContext.Provider value={ mockDevRolesService }><Run/></AuthoritiesContext.Provider>);
+        const { getByText, getByLabelText} = await render(<AuthoritiesContext.Provider value={ mockDevRolesService }><Run/></AuthoritiesContext.Provider>);
 
         // Click disclosure icon
         fireEvent.click(getByLabelText("icon: right"));
         expect(await(waitForElement(() => getByText("XML")))).toBeInTheDocument();
         expect(await(waitForElement(() => getByText("loadXML")))).toBeInTheDocument();
 
+        let notification = getByLabelText("icon: check-circle");
+        expect(notification).toBeInTheDocument();
+        fireEvent.mouseOver(notification);
+        expect(await(waitForElement(() => getByText("Step last ran successfully on 7/13/2020, 11:54:06 PM")))).toBeInTheDocument();
+    })
+
+    test("Verify a mapping step's notification shows up correctly", async () => {
+        mocks.runXMLAPI(axiosMock);
+        const { getByText, getByLabelText } = await render(<AuthoritiesContext.Provider value={ mockDevRolesService }><Run/></AuthoritiesContext.Provider>);
+
+        // Click disclosure icon
+        fireEvent.click(getByLabelText("icon: right"));
+        expect(await(waitForElement(() => getByText("Mapping1")))).toBeInTheDocument();
+
+        let notification = getByLabelText("icon: exclamation-circle");
+        expect(notification).toBeInTheDocument();
+        fireEvent.mouseOver(notification);
+        expect(await(waitForElement(() => getByText("Step last ran with errors on 4/4/2020, 1:17:45 AM")))).toBeInTheDocument();
+
+        fireEvent.click(notification);
+        // New Modal with Error message, uri and details is opened
+        expect(await(waitForElement(() => getByText((content, node) => {
+            return getSubElements(content, node,`Mapping step Mapping1 completed with errors`)
+        })))).toBeInTheDocument();
+        expect(document.querySelector('#error-list')).toHaveTextContent('Out of 3 batches, 1 succeeded and 2 failed. Error messages are displayed below')
+        expect(getByText("Message:")).toBeInTheDocument()
+        expect(getByText("Details:")).toBeInTheDocument()
+        expect(getByText("URI:")).toBeInTheDocument()
+        // Error 2 is present
+        //expect(getByText("Error 2")).toBeInTheDocument();
+        expect(await(waitForElement(() => getByText("Error 2")))).toBeInTheDocument()
+        fireEvent.click(getByText('Close'));
     })
 
 });

@@ -1,5 +1,5 @@
-import React, { useState, CSSProperties, useEffect } from 'react';
-import { Collapse, Spin, Icon, Card, Tooltip, Modal, Upload, message } from 'antd';
+import React, {useState, CSSProperties, useEffect, useContext} from 'react';
+import { Collapse, Icon, Card, Modal} from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { MLButton } from '@marklogic/design-system';
@@ -8,6 +8,8 @@ import sourceFormatOptions from '../../config/formats.config';
 import {RunToolTips} from '../../config/tooltips.config';
 import styles from './flows.module.scss';
 import { MLTooltip, MLSpin, MLUpload } from '@marklogic/design-system';
+import axios from "axios";
+import {UserContext} from "../../util/user-context";
 
 const { Panel } = Collapse;
 
@@ -26,6 +28,7 @@ interface Props {
     newStepToFlowOptions: any;
     addStepToFlow: any;
     flowsDefaultActiveKey: any;
+    showStepRunResponse: any;
 }
 
 const StepDefinitionTypeTitles = {
@@ -44,6 +47,7 @@ const StepDefinitionTypeTitles = {
 }
 
 const Flows: React.FC<Props> = (props) => {
+    const { handleError } = useContext(UserContext);
     const [newFlow, setNewFlow] = useState(false);
     const [title, setTitle] = useState('');
     const [flowData, setFlowData] = useState({});
@@ -242,6 +246,53 @@ const Flows: React.FC<Props> = (props) => {
         return result !== undefined;
     }
 
+    const showStepRunResponse = async (step) =>{
+        try{
+            let response = await axios.get('/api/jobs/' + step.jobId)
+            if(response.status === 200){
+                props.showStepRunResponse(step.stepName, step.stepDefinitionType, "", step.jobId, response.data);
+            }
+        }
+        catch(error){
+            handleError(error);
+        }
+    }
+
+    const lastRunResponse = (step) => {
+        let stepEndTime, tooltipText;
+        if(step.stepEndTime){
+            stepEndTime = new Date(step.stepEndTime).toLocaleString();
+        }
+        if(!step.lastRunStatus){
+            return ;
+        }
+        else if (step.lastRunStatus === "completed step " + step.stepNumber) {
+            tooltipText = "Step last ran successfully on "+ stepEndTime;
+            return(
+                <MLTooltip overlayStyle={{maxWidth: '200px'}} title= {tooltipText} placement="bottom"  >
+                    <Icon type="check-circle" theme="filled" className={styles.successfulRun} />
+                </MLTooltip>
+            );
+
+        }
+        else if (step.lastRunStatus === "completed with errors step " + step.stepNumber) {
+            tooltipText = "Step last ran with errors on "+ stepEndTime;
+            return(
+                <MLTooltip overlayStyle={{maxWidth: '190px'}} title={tooltipText} placement="bottom"  onClick={(e) => showStepRunResponse(step)}>
+                    <Icon type="exclamation-circle" theme="filled" className={styles.unSuccessfulRun} />
+                </MLTooltip>
+            );
+        }
+        else {
+            tooltipText = "Step last failed on "+ stepEndTime;
+            return(
+                <MLTooltip overlayStyle={{maxWidth: '175px'}} title={tooltipText} placement="bottom"  onClick={(e) => showStepRunResponse(step)}>
+                    <Icon type="exclamation-circle" theme="filled" className={styles.unSuccessfulRun} />
+                </MLTooltip>
+            );
+        }
+    }
+
     let panels;
     if (props.flows) {
         panels = props.flows.map((flow, i) => {
@@ -251,10 +302,15 @@ const Flows: React.FC<Props> = (props) => {
                 let stepNumber = step.stepNumber;
                 return (
                     <Card
-                        style={{ width: 300, marginRight: 20 }}
+                        className={styles.cardStyle}
                         title={StepDefToTitle(step.stepDefinitionType)}
                         key={stepNumber}
                         size="small"
+                        actions={[
+                            <span className={styles.stepResponse}>
+                                {lastRunResponse(step)}
+                            </span>
+                        ]}
                         extra={
                             <div className={styles.actions}>
                                 {props.hasOperatorRole ?

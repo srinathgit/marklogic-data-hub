@@ -14,7 +14,8 @@
  limitations under the License.
  */
 'use strict';
-
+const DataHubSingleton = require("/data-hub/5/datahub-singleton.sjs");
+const datahub = DataHubSingleton.instance();
 const Artifacts = require('/data-hub/5/artifacts/core.sjs');
 const ds = require("/data-hub/5/data-services/ds-utils.sjs");
 
@@ -71,6 +72,27 @@ flows.map(flow => {
       stepDetails.stepName = step.name;
       stepDetails.stepDefinitionType = step.stepDefinitionType;
       stepDetails.sourceFormat = step.sourceFormat;
+
+      const jobQueries = [];
+      jobQueries.push(cts.collectionQuery('Job'));
+      jobQueries.push(cts.jsonPropertyValueQuery("flow",flow.name));
+      jobQueries.push(cts.jsonPropertyValueQuery("stepName",step.name));
+
+      let latestJob = fn.head(datahub.hubUtils.queryLatest(function() {
+         return fn.head(fn.subsequence(
+          cts.search(
+            cts.andQuery(jobQueries),
+            [cts.indexOrder(cts.jsonPropertyReference("timeStarted"), "descending")]
+          ), 1, 1
+        ));
+      }, datahub.config.JOBDATABASE));
+      if(latestJob) {
+        latestJob = latestJob.toObject();
+        stepDetails.jobId = latestJob.job.jobId;
+        let stepRunResponse = latestJob.job.stepResponses[stepNumber];
+        stepDetails.lastRunStatus = stepRunResponse.status;
+        stepDetails.stepEndTime = stepRunResponse.stepEndTime;
+      }
     });
   }
   return flowWithStepDetails;
