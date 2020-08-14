@@ -1,0 +1,153 @@
+{
+  "database-name": "%%mlStagingDbName%%",
+  "schema-database": "%%mlStagingSchemasDbName%%",
+  "triggers-database": "%%mlStagingTriggersDbName%%",
+  "triple-index": true,
+  "collection-lexicon": true,
+  "uri-lexicon": true,
+  "range-field-index": [
+    {
+      "invalid-values": "reject",
+      "field-name": "systemStart",
+      "range-value-positions": false,
+      "scalar-type": "dateTime"
+    },
+    {
+      "invalid-values": "reject",
+      "field-name": "systemEnd",
+      "range-value-positions": false,
+      "scalar-type": "dateTime"
+    },
+    {
+      "invalid-values": "reject",
+      "field-name": "datahubCreatedOn",
+      "range-value-positions": true,
+      "scalar-type": "dateTime"
+    },
+    {
+      "invalid-values": "reject",
+      "field-name": "datahubCreatedByJob",
+      "range-value-positions": true,
+      "scalar-type": "string",
+      "collation": "http://marklogic.com/collation/"
+    },
+    {
+      "invalid-values": "reject",
+      "field-name": "datahubCreatedByStep",
+      "range-value-positions": true,
+      "scalar-type": "string",
+      "collation": "http://marklogic.com/collation/"
+    },
+    {
+      "invalid-values": "reject",
+      "field-name": "datahubCreatedInFlow",
+      "range-value-positions": true,
+      "scalar-type": "string",
+      "collation": "http://marklogic.com/collation/"
+    }
+  ],
+  "field": [
+    {
+      "field-name": "systemStart",
+      "metadata": "true",
+      "stemmed-searches": "off",
+      "field-value-searches": false,
+      "field-value-positions": false,
+      "fast-phrase-searches": false,
+      "fast-case-sensitive-searches": false,
+      "fast-diacritic-sensitive-searches": false,
+      "word-lexicons": "",
+      "included-elements": null,
+      "excluded-elements": null,
+      "tokenizer-overrides": ""
+    },
+    {
+      "field-name": "systemEnd",
+      "metadata": "true",
+      "stemmed-searches": "off",
+      "field-value-searches": false,
+      "field-value-positions": false,
+      "fast-phrase-searches": false,
+      "fast-case-sensitive-searches": false,
+      "fast-diacritic-sensitive-searches": false,
+      "word-lexicons": "",
+      "included-elements": null,
+      "excluded-elements": null,
+      "tokenizer-overrides": ""
+    },
+    {
+      "field-name": "datahubCreatedOn",
+      "metadata": "true",
+      "stemmed-searches": "off",
+      "word-searches": false,
+      "field-value-searches": true,
+      "field-value-positions": true,
+      "fast-phrase-searches": false,
+      "fast-case-sensitive-searches": false,
+      "fast-diacritic-sensitive-searches": false,
+      "word-lexicons": "",
+      "included-elements": null,
+      "excluded-elements": null,
+      "tokenizer-overrides": ""
+    },
+    {
+      "field-name": "datahubCreatedByJob",
+      "metadata": "true",
+      "stemmed-searches": "off",
+      "word-searches": true,
+      "field-value-searches": true,
+      "field-value-positions": false,
+      "fast-phrase-searches": false,
+      "fast-case-sensitive-searches": false,
+      "fast-diacritic-sensitive-searches": false,
+      "word-lexicons": "",
+      "included-elements": null,
+      "excluded-elements": null,
+      "tokenizer-override": [
+        {
+          "character": "-",
+          "tokenizer-class": "remove"
+        }
+      ]
+    },
+    {
+      "field-name": "datahubCreatedByStep",
+      "metadata": "true",
+      "stemmed-searches": "off",
+      "word-searches": true,
+      "field-value-searches": true,
+      "field-value-positions": false,
+      "fast-phrase-searches": false,
+      "fast-case-sensitive-searches": false,
+      "fast-diacritic-sensitive-searches": false,
+      "word-lexicons": "",
+      "included-elements": null,
+      "excluded-elements": null,
+      "tokenizer-override": [
+        {
+          "character": "_",
+          "tokenizer-class": "remove"
+        },
+        {
+          "character": "-",
+          "tokenizer-class": "remove"
+        }
+      ]
+    },
+    {
+      "field-name": "datahubCreatedInFlow",
+      "metadata": "true",
+      "stemmed-searches": "off",
+      "word-searches": false,
+      "field-value-searches": false,
+      "field-value-positions": false,
+      "fast-phrase-searches": false,
+      "fast-case-sensitive-searches": false,
+      "fast-diacritic-sensitive-searches": false,
+      "word-lexicons": "",
+      "included-elements": null,
+      "excluded-elements": null,
+      "tokenizer-overrides": ""
+    }
+  ]
+}
