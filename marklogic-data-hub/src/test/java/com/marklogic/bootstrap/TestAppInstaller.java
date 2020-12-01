@@ -19,6 +19,7 @@ import com.marklogic.hub.test.HubConfigObjectFactory;
 import com.marklogic.hub.test.HubCoreTestConfig;
 import com.marklogic.mgmt.ManageClient;
 import com.marklogic.mgmt.api.API;
+import com.marklogic.mgmt.api.group.Group;
 import com.marklogic.mgmt.api.security.Privilege;
 import com.marklogic.mgmt.api.security.User;
 import com.marklogic.mgmt.mapper.DefaultResourceMapper;
@@ -170,7 +171,7 @@ class InstallerThread extends LoggingObject implements Runnable {
             dataHubSecurityAdmin.setPassword("password");
             dataHubSecurityAdmin.addRole("data-hub-security-admin");
             dataHubSecurityAdmin.save();
-            
+
             User hubCentralMappingReader = new User(api, "test-hub-mapping-reader");
             hubCentralMappingReader.setPassword("password");
             hubCentralMappingReader.addRole("hub-central-mapping-reader");
@@ -202,6 +203,13 @@ class InstallerThread extends LoggingObject implements Runnable {
             addStatusPrivilegeToDataHubDeveloper(hubConfig);
 
             HubTestBase.applyDatabasePropertiesForTests(hubConfig);
+
+            /* The bugfix 54003 requires that  "Reindex JSON language property" trace event is added. If the fix is made
+            permanent in the server, we wouldn't need the trace event. In order to investigate the behavior of server
+            with the bugfix, this event has to be added. All tests should run fine with or without this fix.
+             */
+            Group group = new Group(api, "Default");
+            group.trace("Reindex JSON language property");
 
             logger.info("Finished installing test application in host: " + hubConfig.getHost());
         } finally {
