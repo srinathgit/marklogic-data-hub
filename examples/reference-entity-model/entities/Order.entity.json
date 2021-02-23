@@ -6,24 +6,43 @@
   },
   "definitions": {
     "Order": {
-      "required": [ ],
       "primaryKey": "orderId",
       "properties": {
         "orderId": {
-          "datatype": "string"
+          "datatype": "integer"
         },
-        "address": {
-          "$ref": "#/definitions/Address"
+        "timestamp": {
+          "datatype": "dateTime"
+        },
+        "orderedBy": {
+          "datatype": "integer",
+          "foreignKey": "http://example.org/Customer-0.0.1/Customer#customerId"
+        },
+        "deliveredTo": {
+          "datatype": "integer",
+          "foreignKey": "http://example.org/Customer-0.0.1/Customer#customerId"
+        },
+        "lineItems": {
+          "datatype": "array",
+          "items": {
+            "$ref": "#/definitions/LineItem"
+          }
         }
       }
     },
-    "Address": {
+    "LineItem": {
+      "required": [],
+      "pii": [],
+      "elementRangeIndex": [],
+      "rangeIndex": [],
+      "wordLexicon": [],
       "properties": {
-        "city": {
-          "datatype": "string"
+        "quantity": {
+          "datatype": "integer"
         },
-        "state": {
-          "datatype": "string"
+        "orderIncludes": {
+          "datatype": "integer",
+          "foreignKey": "http://example.org/Product-0.0.1/Product#productId"
         }
       }
     }

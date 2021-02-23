@@ -46,6 +46,54 @@ function buildMappingXML(mappingDoc) {
   }
 
   const mappingObject = mappingDoc.toObject();
+  let allEntityMap = [];
+  let primaryEntityMap = {};
+
+  primaryEntityMap.targetEntityType = mappingObject.targetEntityType;
+  primaryEntityMap.properties = mappingObject.properties;
+  primaryEntityMap.sourceContext = mappingObject.sourceContext ? mappingObject.sourceContext : "/";
+
+  allEntityMap.push(primaryEntityMap);
+  if(mappingObject["relatedEntityMappings"] && mappingObject["relatedEntityMappings"].length > 0){
+    mappingObject["relatedEntityMappings"].forEach(entityMap => allEntityMap.push(entityMap));
+  }
+  const namespaces = [];
+  if (mappingObject.namespaces) {
+    for (const prefix of Object.keys(mappingObject.namespaces).sort()) {
+      if (mappingObject.namespaces.hasOwnProperty(prefix)) {
+        if (reservedNamespaces.includes(prefix)) {
+          throw new Error(`'${prefix}' is a reserved namespace.`);
+        }
+        namespaces.push(`xmlns:${prefix}="${mappingObject.namespaces[prefix]}"`);
+      }
+    }
+  }
+
+  let entityTemplates = "";
+  for(var i=0; i< allEntityMap.length; i++){
+    entityTemplates += generateEntityTemplates(allEntityMap[i]).join('\n') + "\n";
+  }
+
+  let xml =
+    `<m:mapping xmlns:m="http://marklogic.com/entity-services/mapping" xmlns:map="http://marklogic.com/xdmp/map" ${namespaces.join(' ')}>
+      ${retrieveFunctionImports()}
+      <m:param name="URI"/>
+      ${entityTemplates}
+      <m:output>
+      ${allEntityMap.map(entityMap =>
+        `<m:for-each>
+          <m:select>${entityMap["sourceContext"]?entityMap["sourceContext"]:"/"}</m:select>
+          <m:call-template name="${getEntityName(entityMap.targetEntityType)}"/>
+        </m:for-each>`).join("\n")}
+      </m:output>
+    </m:mapping>`;
+  return xdmp.unquote(xml);
+}
+
+function generateEntityTemplates(mappingObject) {
+  if (dhMappingTraceIsEnabled) {
+    xdmp.trace(dhMappingTrace, 'Building mapping XML');
+  }
   const rootEntityTypeTitle = getEntityName(mappingObject.targetEntityType);
 
   // For the root mapping and for each nested object property (regardless of depth), build an object with a single
@@ -64,40 +112,14 @@ function buildMappingXML(mappingDoc) {
     if (dhMappingTraceIsEnabled) {
       xdmp.trace(dhMappingTrace, `Generating template for propertyPath '${propertyPath}' and entityTypeId '${mapping.targetEntityType}'`);
     }
-    const model = (mapping.targetEntityType.startsWith("#/definitions/")) ? parentEntity : getTargetEntity(mapping.targetEntityType);
+    const model = (mapping.targetEntityType.startsWith("#/definitions/")) ? parentEntity : getTargetEntity(fn.string(mapping.targetEntityType));
     const template = buildEntityTemplate(mapping, model, propertyPath);
     if (dhMappingTraceIsEnabled) {
       xdmp.trace(dhMappingTrace, `Generated template: ${template}`);
     }
     return template;
   });
-
-  const namespaces = [];
-  if (mappingObject.namespaces) {
-    for (const prefix of Object.keys(mappingObject.namespaces).sort()) {
-      if (mappingObject.namespaces.hasOwnProperty(prefix)) {
-        if (reservedNamespaces.includes(prefix)) {
-          throw new Error(`'${prefix}' is a reserved namespace.`);
-        }
-        namespaces.push(`xmlns:${prefix}="${mappingObject.namespaces[prefix]}"`);
-      }
-    }
-  }
-
-  // Importing the "map" namespace fixes an issue when testing a mapping from QuickStart that hasn't been reproduced
-  // yet in a unit test; it ensures that the map:* calls in the XSLT resolve to map functions.
-  return xdmp.unquote(`
-    <m:mapping xmlns:m="http://marklogic.com/entity-services/mapping" xmlns:map="http://marklogic.com/xdmp/map" ${namespaces.join(' ')}>
-      ${retrieveFunctionImports()}
-      <m:param name="URI"/>
-      ${entityTemplates.join('\n')}
-      <!-- Default entity is ${rootEntityTypeTitle} -->
-      <m:output>
-        <m:for-each><m:select>/</m:select>
-            <m:call-template name="${rootEntityTypeTitle}" />
-        </m:for-each>
-      </m:output>
-    </m:mapping>`);
+  return entityTemplates;
 }
 
 /**

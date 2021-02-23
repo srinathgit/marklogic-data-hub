@@ -43,5 +43,6 @@ try {
     }, {database: xdmp.modulesDatabase(), update: "true", commit: "auto"}
   );
 } catch (e) {
-  httpUtils.throwBadRequest("Unable to generate mapping transform for mapping at URI: " + uri + "; cause: " + e.message);
+  throw e;
+  //httpUtils.throwBadRequest("Unable to generate mapping transform for mapping at URI: " + uri + "; cause: " + e.message);
 }

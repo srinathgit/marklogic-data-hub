@@ -39,7 +39,7 @@ declare function data-hub-map-to-canonical(
   $mapping-uri as xs:string,
   $user-params as map:map?,
   $options as map:map
-) as node()
+) as json:array
 {
   let $target-entity-name := $options=>map:get("entity")
   let $format := $options=>map:get("format")
@@ -62,19 +62,22 @@ declare function data-hub-map-to-canonical(
     else map:map()=>map:with("template", $target-entity-name)
   let $results :=
     xdmp:xslt-invoke($mapping-uri||".xslt", $input, $user-params, $parms)
+  let $response := json:array()
   return
     if ($format="xml")
     then inst:canonical-xml($results)
     else(
-      let $element := $results/element()
-      return
       (: This change is necessitated by DHFPROD-6219. In case the entity doesn't have strucutred properties, it
          returns empty json object. If it has structured properties, the empty structured properties are removed.
          inst:canonical-json() method introduces the '$ref'.  :)
-      if (empty($element/*)) then
-        document{json:object()=>map:with(string(fn:node-name($element)), json:object())}
-      else
-        inst:canonical-json(xquery-lib:remove-empty-structured-properties($element))
+      let $_ :=
+      for $element in $results/element()
+      return
+        if (empty($element/*)) then
+          json:array-push($response, document{json:object()=>map:with(string(fn:node-name($element)), json:object())})
+        else
+          json:array-push($response, inst:canonical-json(xquery-lib:remove-empty-structured-properties($element)))
+       return $response
     )
 };
 

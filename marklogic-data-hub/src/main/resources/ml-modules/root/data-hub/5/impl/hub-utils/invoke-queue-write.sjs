@@ -28,12 +28,12 @@ const temporalCollections = temporalLib.getTemporalCollections().toArray().reduc
     acc[col] = true;
     return acc;
 }, {});
-
+let counter = 0;
 for (let content of writeQueue) {
     let context = (content.context||{});
     let fullPermissions = (permissions || []).concat((context.permissions||[]));
     let existingCollections = xdmp.documentGetCollections(content.uri);
-    let collections = fn.distinctValues(Sequence.from(baseCollections.concat((context.collections||[])))).toArray();
+    let collections = fn.distinctValues(Sequence.from(baseCollections[counter].concat((context.collections||[])))).toArray();
     let metadata = context.metadata;
     let temporalCollection = collections.concat(existingCollections).find((col) => temporalCollections[col]);
     let isDeleteOp = !!content['$delete'];
@@ -63,6 +63,7 @@ for (let content of writeQueue) {
             xdmp.documentInsert(content.uri, content.value, {permissions: fullPermissions, collections, metadata});
         }
     }
+    ++counter;
 }
 let writeInfo = {
     transaction: xdmp.transaction(),

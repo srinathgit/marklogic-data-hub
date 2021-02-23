@@ -2,6 +2,7 @@ const DataHubSingleton = require("/data-hub/5/datahub-singleton.sjs");
 const datahub = DataHubSingleton.instance();
 const defaultLib = require('/data-hub/5/builtins/steps/mapping/default/lib.sjs');
 const lib = require('/data-hub/5/builtins/steps/mapping/entity-services/lib.sjs');
+const entityLib = require("/data-hub/5/impl/entity-lib.sjs");
 const es = require('/MarkLogic/entity-services/entity-services');
 const entityValidationLib = require('entity-validation-lib.sjs');
 const xqueryLib = require('xquery-lib.xqy')
@@ -55,8 +56,7 @@ function main(content, options) {
     datahub.debug.log({message: errMsg, type: 'error'});
     throw Error(errMsg);
   }
-  let entityName = lib.getEntityName(targetEntityType);
-  let entity = lib.getTargetEntity(targetEntityType);
+
   let instance = lib.extractInstance(doc);
   let provenance = {};
 
@@ -70,18 +70,39 @@ function main(content, options) {
     throw Error(e);
   }
   // fix the document URI if the format changes
-  content.uri = datahub.flow.flowUtils.properExtensionURI(content.uri, outputFormat);
+  //content.uri = datahub.flow.flowUtils.properExtensionURI(content.uri, outputFormat);
 
   // Must validate before building an envelope so that validaton errors can be added to the headers
-  entityValidationLib.validateEntity(newInstance, options, entity.info);
+  //entityValidationLib.validateEntity(newInstance, options, entity.info);
+  let entityMap = {};
+  let contentResponse = [];
 
-  content.value = buildEnvelope(entity.info, doc, newInstance, outputFormat, options);
+  for(var i = 0; i<newInstance.length; i++){
+    const entityName = fn.string(Object.keys(fn.head(newInstance[i]).toObject())[0]);
+    let entityModel;
+    let collections = [];
+    collections.push(entityName);
+    collections.push(fn.head(mapping).toObject().name);
+    if(!entityMap[entityName]){
+      entityModel = entityLib.findModelByEntityName(entityName);
+      entityMap[entityName] = entityModel;
+    }
+    else{
+      entityModel = entityMap[entityName];
+    }
+    let newContent = Object.assign({}, content);
+    newContent.value = buildEnvelope(entityModel.info, doc, newInstance[i], outputFormat, options);
+    newContent.uri = "/"+entityName + "/" + sem.uuidString() + ".json";
+    newContent.collections = collections;
+    contentResponse.push(newContent);
+  }
+
 
   // Must remove these so that they're not carried over to another item in a batch
-  entityValidationLib.removeValidationErrorsFromHeaders(options);
+  //entityValidationLib.removeValidationErrorsFromHeaders(options);
 
-  content.provenance = { [content.uri]: provenance };
-  return content;
+  //content.provenance = { [content.uri]: provenance };
+  return contentResponse;
 }
 
 // Extracted for unit testing purposes

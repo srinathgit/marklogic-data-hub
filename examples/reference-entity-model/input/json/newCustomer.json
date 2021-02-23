@@ -1,0 +1,62 @@
+{
+  "CustomerID": 202,
+  "Name": {
+    "FirstName": "Cynthia",
+    "LastName": "Waters"
+  },
+  "Email": "cynthia_waters@gmail.com",
+  "Orders": [
+    {
+      "OrderId": "2002",
+      "DateAndTime": "2020/02/15-10:26:30",
+      "FirstName": "Audrey",
+      "LastName": "Thompson",
+      "SendToID": "303",
+      "Products": [
+        {
+          "Quantity": "1",
+          "ProductId": "10",
+          "Name": "New Balance FuelCell Echo V1 Sneaker"
+        },
+        {
+          "Quantity": "2",
+          "ProductId": "20",
+          "Name": "WHITIN Minimalist Barefoot Sneakers - Arch Support - Lace Up Wide Fit"
+        }
+      ]
+    },
+    {
+      "OrderId": "2012",
+      "DateAndTime": "2021/02/14-09:39:15",
+      "FirstName": "Cornelia",
+      "LastName": "Nixon",
+      "SendToID": "404",
+      "Products": [
+        {
+          "Quantity": "1",
+          "ProductId": "30",
+          "Name": "Crock-Pot 8 Quart Manual Slow Cooker with 16 Oz Little Dipper Food Warmer, Stainless"
+        },
+        {
+          "Quantity": "2",
+          "ProductId": "40",
+          "Name": "Cuisinart 8-Cup Stainless Steel Electric Kettle with Automatic Shut-off"
+        }
+      ]
+    }
+  ],
+  "BabyRegistry": {
+    "BabyRegistryId": "3039",
+    "Arrival_Date": "2021-06-07",
+    "Products": [
+      {
+        "ProductId": "50",
+        "Name": "Alepo Baby Beanie Hat, Infant Newborn Toddler Kids Winter Warm Knit Cap for Boys Girls"
+      },
+      {
+        "ProductId": "60",
+        "Name": "BlueSnail Newborn Receiving Blanket Baby Sleeping Wrap Swaddle (Gray)"
+      }
+    ]
+  }
+}

@@ -284,14 +284,30 @@ class Flow {
     if (!combinedOptions.noWrite) {
       try {
         // combine all collections
-        const collections = [
+        const baseCollections = [
           options.collections,
           ((flowStep.options || {}).collections || (stepDefinition.options || {}).collections),
           (flow.options || {}).collections
         ].reduce((previousValue, currentValue) => (previousValue || []).concat((currentValue || [])))
           // filter out any null/empty collections that may exist
           .filter((col) => !!col);
-
+        let collections = [];
+        for (let content of this.writeQueue) {
+          if(!content.collections){
+            collections.push(baseCollections);
+          }
+          else{
+            const recordSpecificCollections = [
+              (content.collections || (stepDefinition.options || {}).collections),
+              (flow.options || {}).collections
+            ].reduce((previousValue, currentValue) => (previousValue || []).concat((currentValue || [])))
+              // filter out any null/empty collections that may exist
+              .filter((col) => !!col);
+            console.log(JSON.stringify(recordSpecificCollections))
+            console.log(content.collections)
+            collections.push(recordSpecificCollections);
+          }
+        }
         writeTransactionInfo = this.datahub.hubUtils.writeDocuments(this.writeQueue, xdmp.defaultPermissions(), collections, this.globalContext.targetDatabase);
       } catch (e) {
         this.handleWriteError(this, e);
